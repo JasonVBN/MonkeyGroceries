@@ -7,6 +7,8 @@
     <script>
         async function getLocs(event, radius, query){
             event.preventDefault();
+            const status = document.getElementById('status-message');
+            status.textContent = 'Searching & filtering locations within ' + radius + ' miles...';
 
             const response = await fetch('/getlocs', {
                 method: 'POST',
@@ -37,6 +39,19 @@
                 <label for="radius-input">Enter radius in miles:</label>
                 <input type="number" id="radius-input" value="5" min="1">
                 <input type="text" id="query-input" placeholder="What you trying to buy?">
+                <!-- Scrollbars for price, time, rating -->
+                <div style="margin-top: 10px;">
+                    <label for="price-scroll">Price: <span id="price-value">0</span></label>
+                    <input type="range" id="price-scroll" name="price" min="0" max="1" step="0.1" value="0.3">
+                </div>
+                <div>
+                    <label for="time-scroll">Time: <span id="time-value">0</span></label>
+                    <input type="range" id="time-scroll" name="time" min="0" max="1" step="0.1" value="0.4">
+                </div>
+                <div>
+                    <label for="rating-scroll">Rating: <span id="rating-value">0</span></label>
+                    <input type="range" id="rating-scroll" name="rating" min="0" max="1" step="0.1" value="0.3">
+                </div>
                 <button id="search-button">Find Stores</button>
             </form>
             <div id="results-panel">
@@ -45,7 +60,32 @@
             </div>
         </div>
     </div>
-    <script>(g=>{
+        <script>
+            // Update displayed values for scrollbars
+            document.addEventListener('DOMContentLoaded', function() {
+                const priceScroll = document.getElementById('price-scroll');
+                const priceValue = document.getElementById('price-value');
+                priceScroll.addEventListener('input', function() {
+                    priceValue.textContent = priceScroll.value;
+                });
+                priceValue.textContent = priceScroll.value;
+
+                const timeScroll = document.getElementById('time-scroll');
+                const timeValue = document.getElementById('time-value');
+                timeScroll.addEventListener('input', function() {
+                    timeValue.textContent = timeScroll.value;
+                });
+                timeValue.textContent = timeScroll.value;
+
+                const ratingScroll = document.getElementById('rating-scroll');
+                const ratingValue = document.getElementById('rating-value');
+                ratingScroll.addEventListener('input', function() {
+                    ratingValue.textContent = ratingScroll.value;
+                });
+                ratingValue.textContent = ratingScroll.value;
+            });
+        </script>
+        <script>(g=>{
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});
         var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{
             await (a=m.createElement("script"));
