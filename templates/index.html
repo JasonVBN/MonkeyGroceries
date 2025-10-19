@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script>
+        async function getLocs(event, radius){
+            event.preventDefault();
+            alert("Radius: " + radius);
+
+            const response = await fetch('/getlocs?radius=' + radius);
+            alert("Response received");
+            const data = await response.json();
+            const locsList = data['locations'];
+            const locationsUl = document.getElementById('locations');
+            locationsUl.innerHTML = '';
+            locsList.forEach(loc => {
+                const li = document.createElement('li');
+                li.textContent = `${loc.name} - ${loc.vicinity}`;
+                locationsUl.appendChild(li);
+            });
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDuPbvHvD-jm49o21_0_N2nRpkhpEby0bM"></script>
+</head>
+<body>
+    <form onsubmit="getLocs(event, document.getElementById('radius').value);">
+        <input type="number" id="radius" name="radius" step=0.5 max=5 placeholder="Enter radius in miles">
+        <input type="submit">
+    </form>
+
+    <ul id="locations">
+
+    </ul>
+
+    <div id="map" style="height:400px;width:100%;"></div>
+    <script>
+        function initMap() {
+        var center = {lat: 30.2672, lng: -97.7431}; // Example: Austin, TX
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 12,
+            center: center
+        });
+        var marker = new google.maps.Marker({position: center, map: map});
+        }
+        window.onload = initMap;
+    </script>
+</body>
+</html>
