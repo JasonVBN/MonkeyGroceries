@@ -67,10 +67,8 @@
     <script>
         async function getLocs(event, radius){
             event.preventDefault();
-            alert("Radius: " + radius);
 
             const response = await fetch('/getlocs?radius=' + radius);
-            alert("Response received");
             const data = await response.json();
             const locsList = data['locations'];
             const locationsUl = document.getElementById('locations');

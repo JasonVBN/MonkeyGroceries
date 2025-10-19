@@ -14,13 +14,27 @@ if not API_KEY:
 
 # Initialize the client
 client = genai.Client(api_key=API_KEY)
+"""'''
+for model in client.models.list():
+    print(model)"""
+SYSTEM_PROMPT = """
+You are ShopSmartAI — a shopping optimization assistant.
+Your job:
+- Take a list of products and nearby store catalogs.
+- Recommend which stores have the requested products.
+- Output results as JSON: {"recommended_stores": ["..."]}
+"""
 
-for model in client.models.ListModels():
-    print(model)
 # Call the model
-"""response = client.models.generate_content(
-    model="gemini-1.5-pro",  # or "gemini-1.5-pro" for more reasoning
-    contents="List 3 nearby stores where I can buy electronics."
-)
-
-print(response.text)"""
+def ask_gemini(user_prompt):
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",  # or "gemini-1.5-pro" for more reasoning
+        contents=[
+        {"role": "system", "parts": [{"text": SYSTEM_PROMPT}]},
+        {"role": "user", "parts": [{"text": user_prompt}]}
+    ]
+products = ["milk", "bread"]
+stores = {"Walmart": ["milk", "eggs"], "Target": ["chips", "bread"]}
+query = f"Products to find: {products}. Store data: {stores}."
+response = ask_gemini(query)
+print(response.text)

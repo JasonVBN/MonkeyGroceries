@@ -1,6 +1,7 @@
 
 from flask import Flask, jsonify, render_template, request
 import requests
+import time
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -25,13 +26,26 @@ def getlocs():
         f'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
         f'?location={lat},{lng}&radius={radius}&type={type}&key={API_KEY}'
     )
-
+    filtered = []
     print("calling places API...")
-    response = requests.get(url)
+    data = requests.get(url).json()
     print("places API response received")
-    results = response.json()['results']
+    results = data['results']
+    next_page_token = data.get('next_page_token')
+    while next_page_token:
+        print("fetching next page of results...")
+        time.sleep(2)
+        paged_url = url + f'&pagetoken={next_page_token}'
+        data = requests.get(paged_url).json()
+        results.extend(data['results'])
+        next_page_token = data.get('next_page_token')
+    
+    #remove unnecessary keys
+    for x in results:
+        # filtered.append(x)
+        filtered.append({'name': x['name'], 'vicinity': x['vicinity']})
+    
     print(f"[getlocs] found {len(results)} places:")
-    filtered = [{'name': x['name'], 'vicinity': x['vicinity']} for x in results]
     print(*filtered)
     return jsonify({'locations': filtered})
 
