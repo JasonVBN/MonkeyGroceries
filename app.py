@@ -88,8 +88,8 @@ def getlocs():
     offsets = [
         (offset/111, 0, "North"),              # North
         (-offset/111, 0, "South"),             # South
-        (0, offset/(111*0.87), "East"),        # East (adjusted for Austin latitude)
-        (0, -offset/(111*0.87), "West")        # West
+        # (0, offset/(111*0.87), "East"),        # East (adjusted for Austin latitude)
+        # (0, -offset/(111*0.87), "West")        # West
     ]
     
     for lat_off, lng_off, direction in offsets:
