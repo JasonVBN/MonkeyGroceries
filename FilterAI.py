@@ -4,6 +4,7 @@ import sys
 import json
 from google import genai   # alias; see docs for exact import name
 # if import fails, try: from google import genai OR import google.generativeai as genai
+# import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -35,6 +36,7 @@ Your job:
 # Call the model
 given_stores = ["Walmart", 'Best Buy', 'Target', 'Costco'] # Store list given by jason
 def ask_gemini(user_prompt, given_store=given_stores):
+    print("[ask_gemini] user_prompt:", user_prompt)
     response = client.models.generate_content(
         model="gemini-2.5-pro",  # or "gemini-1.5-pro" for more reasoning
         contents=[

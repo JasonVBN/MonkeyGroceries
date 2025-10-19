@@ -5,17 +5,23 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script>
-        async function getLocs(event, radius){
+        async function getLocs(event, radius, query){
             event.preventDefault();
 
-            const response = await fetch('/getlocs?radius=' + radius);
+            const response = await fetch('/getlocs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ radius: radius, query: query }),
+            });
             const data = await response.json();
             const locsList = data['locations'];
-            const locationsUl = document.getElementById('locations');
+            const locationsUl = document.getElementById('results-list');
             locationsUl.innerHTML = '';
             locsList.forEach(loc => {
                 const li = document.createElement('li');
-                li.textContent = `${loc.name} - ${loc.vicinity}`;
+                li.textContent = `${loc.name}`;
                 locationsUl.appendChild(li);
             });
             locationsUl.hidden = false;
@@ -27,9 +33,10 @@
         <div id="map"></div>
         <div id="panel">
             <h2>Grocery Store Finder</h2>
-            <form id="controls" onsubmit="getLocs(event, document.getElementById('radius').value);">
+            <form id="controls" onsubmit="getLocs(event, document.getElementById('radius-input').value, document.getElementById('query-input').value);">
                 <label for="radius-input">Enter radius in miles:</label>
                 <input type="number" id="radius-input" value="5" min="1">
+                <input type="text" id="query-input" placeholder="What you trying to buy?">
                 <button id="search-button">Find Stores</button>
             </form>
             <div id="results-panel">

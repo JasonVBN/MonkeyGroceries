@@ -53,7 +53,7 @@ async function initMap() {
     handleLocationError(false);
   }
 
-  document.getElementById('search-button').addEventListener('click', handleSearch);
+//   document.getElementById('search-button').addEventListener('click', handleSearch);
 }
 
 function handleLocationError(browserHasGeolocation) {

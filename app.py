@@ -5,6 +5,7 @@ import time
 from dotenv import load_dotenv
 import os
 load_dotenv()
+from FilterAI import ask_gemini
 
 app = Flask(__name__)
 
@@ -47,8 +48,10 @@ def fetch_all_pages(lat, lng, radius, place_type, api_key):
 
 @app.route('/getlocs', methods=['GET','POST'])
 def getlocs():
-    r = float(request.args.get('radius'))
-    print(f"[getlocs] radius: {r} km")
+    data = request.get_json()
+    r = float(data.get('radius', 5))
+    query = data.get('query', '')
+    print(f"[getlocs] radius: {r} km, query: {query}")
 
     API_KEY = os.getenv('GMAPS_API_KEY')
     center_lat, center_lng = 30.2672, -97.7431
@@ -87,9 +90,11 @@ def getlocs():
                 all_results.append(place)
     
     print(f"[getlocs] found {len(all_results)} unique places total")
-    filtered = [{'name': x['name'], 'vicinity': x['vicinity']} for x in all_results]
-    
-    return jsonify({'locations': filtered})
+    # filtered = [{'name': x['name'], 'vicinity': x['vicinity']} for x in all_results]
+    filtered = ask_gemini(query, [x['name'] for x in all_results])
+    print("AI-filtered results:", filtered)
+    ret = [{'name': key} for key in filtered['recommended_stores'].keys()]
+    return jsonify({'locations': ret, 'total': len(all_results)})
 
 # @app.route('/audio', methods=['POST'])
 # def receive_audio():
