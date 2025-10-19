@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return render_template('ai.html')
+    return render_template('index.html')
 
 def fetch_all_pages(lat, lng, radius, place_type, api_key):
     """Fetch all pages (up to 60 results) for a single location"""
