@@ -47,8 +47,10 @@ def fetch_all_pages(lat, lng, radius, place_type, api_key):
 
 @app.route('/getlocs', methods=['GET','POST'])
 def getlocs():
-    r = float(request.args.get('radius'))
-    print(f"[getlocs] radius: {r} km")
+    data = request.get_json()
+    r = float(data.get('radius', 5))
+    query = data.get('query', '')
+    print(f"[getlocs] radius: {r} km, query: {query}")
 
     API_KEY = os.getenv('GMAPS_API_KEY')
     center_lat, center_lng = 30.2672, -97.7431
