@@ -120,11 +120,11 @@ def calculate_final_weighted_score(stores_data: list, W_PRICE: float, W_TIME: fl
 if __name__ == "__main__":
     # Example dataset to test all functions at once
     stores_data = [
-        {"store_name": "Shop A", "estimated_price": 19.99, "travel_time_minutes": 12, "rating": 4.8},
-        {"store_name": "Shop B", "estimated_price": 15.49, "travel_time_minutes": 18, "rating": 4.2},
-        {"store_name": "Shop C", "estimated_price": 22.99, "travel_time_minutes": 10, "rating": 4.9},
-        {"store_name": "Shop D", "estimated_price": 15.49, "travel_time_minutes": 15, "rating": 4.5},
-        {"store_name": "Shop E", "estimated_price": 25.00, "travel_time_minutes": 25, "rating": 3.8},
+        {"name": "Shop A", "estimated_price": 19.99, "travel_time_minutes": 12, "rating": 4.8},
+        {"name": "Shop B", "estimated_price": 15.49, "travel_time_minutes": 18, "rating": 4.2},
+        {"name": "Shop C", "estimated_price": 22.99, "travel_time_minutes": 10, "rating": 4.9},
+        {"name": "Shop D", "estimated_price": 15.49, "travel_time_minutes": 15, "rating": 4.5},
+        {"name": "Shop E", "estimated_price": 25.00, "travel_time_minutes": 25, "rating": 3.8},
     ]
 
     # Apply all normalization steps
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     print("\n=== Final Ranked Results ===")
     for rank, store in enumerate(ranked_results, start=1):
         print(
-            f"Rank {rank}: {store['store_name']}\n"
+            f"Rank {rank}: {store['name']}\n"
             f"  Price: ${store['estimated_price']}\n"
             f"  Time: {store['travel_time_minutes']} min\n"
             f"  Rating: {store['rating']}\n"

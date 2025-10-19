@@ -1,6 +1,8 @@
 let map, infoWindow;
 let markers = [];
 let currentUserLocation;
+let directionsService;
+let directionsRenderer;
 
 async function initMap() {
   const { Map, InfoWindow } = await google.maps.importLibrary("maps");
@@ -13,6 +15,13 @@ async function initMap() {
   });
 
   infoWindow = new InfoWindow();
+
+    // Prepare Directions service and renderer for showing routes
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: true,
+    });
 
   // Get user's current location
   if (navigator.geolocation) {
@@ -54,6 +63,52 @@ async function initMap() {
   }
 
 //   document.getElementById('search-button').addEventListener('click', handleSearch);
+}
+
+function getSelectedTravelMode() {
+    const el = document.getElementById('travel-mode-select');
+    if (!el) return 'DRIVING';
+    const val = el.value || 'DRIVE';
+    switch (val) {
+        case 'DRIVE': return 'DRIVING';
+        case 'BICYCLE': return 'BICYCLING';
+        case 'WALK': return 'WALKING';
+        case 'TRANSIT': return 'TRANSIT';
+        default: return 'DRIVING';
+    }
+}
+
+async function showRouteTo(destination) {
+    if (!currentUserLocation) {
+        document.getElementById('status-message').textContent = 'Error: Could not determine your location.';
+        return;
+    }
+
+    if (!directionsService || !directionsRenderer) {
+        console.warn('Directions services not initialized');
+        return;
+    }
+
+    // Clear any existing route
+    try { directionsRenderer.setDirections({routes: []}); } catch (e) { /* ignore */ }
+
+    const travelMode = getSelectedTravelMode();
+
+    const request = {
+        origin: currentUserLocation,
+        destination: destination,
+        travelMode: travelMode,
+    };
+
+    directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+            directionsRenderer.setDirections(result);
+            document.getElementById('status-message').textContent = 'Route displayed.';
+        } else {
+            console.error('Directions request failed due to ' + status);
+            document.getElementById('status-message').textContent = 'Could not calculate route: ' + status;
+        }
+    });
 }
 
 function handleLocationError(browserHasGeolocation) {
@@ -116,7 +171,7 @@ async function calculateRoutes(places) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-Goog-Api-Key": "YOUR_API_KEY",
+                "X-Goog-Api-Key": "AIzaSyC9DkKx9oewNVB7Xc83aHtD2FUpJ9FwqIo",
                 "X-Goog-FieldMask": "originIndex,destinationIndex,duration,distanceMeters,status"
             },
             body: JSON.stringify(request)
@@ -178,10 +233,15 @@ async function displayResults(places, routeData) {
             map.setZoom(15);
             infoWindow.setContent(`<h3>${place.displayName}</h3><p>${place.formattedAddress}</p>`);
             infoWindow.open(map, marker);
+            // Show route from current location to this place
+            showRouteTo(place.location);
         });
 
         marker.addListener('click', () => {
-            li.click();
+            // Click marker -> open info + show route
+            infoWindow.setContent(`<h3>${place.displayName}</h3><p>${place.formattedAddress}</p>`);
+            infoWindow.open(map, marker);
+            showRouteTo(place.location);
         });
 
         resultsList.appendChild(li);

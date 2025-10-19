@@ -27,7 +27,10 @@
             locationsUl.innerHTML = '';
             locsList.forEach(loc => {
                 const li = document.createElement('li');
-                li.textContent = `${loc.name}`;
+                li.innerHTML = `${loc.name} <br>
+                ${loc.address} <br>
+                $${loc['estimated_price']} | Rating: ${loc['rating']} <br>
+                Travel time: ${Math.round(loc['travel_time_minutes'])} mins`;
                 locationsUl.appendChild(li);
             });
             locationsUl.hidden = false;

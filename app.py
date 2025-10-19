@@ -2,10 +2,18 @@
 from flask import Flask, jsonify, render_template, request
 import requests
 import time
+import googlemaps
 from dotenv import load_dotenv
 import os
 load_dotenv()
 from FilterAI import ask_gemini
+from ranking import * 
+import random
+
+R_API_KEY= os.getenv('ROUTE_API_KEY')
+def random_float(start,stop,step=1):
+    n = int((stop - start) / step)
+    return start + step * random.randint(0, n)
 
 app = Flask(__name__)
 
@@ -67,7 +75,10 @@ def getlocs():
         if place_id not in seen_place_ids:
             seen_place_ids.add(place_id)
             all_results.append(place)
-    
+            store_info = all_results[0]
+            
+            # gmaps_link = f"https://www.google.com/maps?q={store_info['location']['lat']},{store_info['location']['lon']}"
+    print(all_results[0])
     # 2. Search at 4 cardinal points (N, S, E, W)
     offset = r * 0.6  # 60% of radius
     offsets = [
@@ -93,8 +104,28 @@ def getlocs():
     # filtered = [{'name': x['name'], 'vicinity': x['vicinity']} for x in all_results]
     filtered = ask_gemini(query, [x['name'] for x in all_results])
     print("AI-filtered results:", filtered)
-    ret = [{'name': key} for key in filtered['recommended_stores'].keys()]
-    return jsonify({'locations': ret, 'total': len(all_results)})
+
+    diks = [{'name': key} for key in filtered['recommended_stores'].keys()]
+    for store in diks:
+        store['estimated_price'] = random_float(10, 50, 0.5)
+        store['travel_time_minutes'] = random_float(5, 30, 0.1)
+        store['rating'] = random_float(3, 5, 0.1)
+        for st in all_results:
+            if st['name'] == store['name']:
+                store['place_id'] = st['place_id']
+                store['address'] = st.get('vicinity', 'N/A')
+                break
+    diks = assign_normalized_price_score(diks)
+    diks = assign_normalized_time_score(diks)
+    diks = assign_normalized_rating_score(diks)
+    ranked = calculate_final_weighted_score(
+        diks,
+        W_PRICE=float(data.get('price_weight', 0.3)),
+        W_TIME=float(data.get('time_weight', 0.4)),
+        W_RATING=float(data.get('rating_weight', 0.3))
+    )
+
+    return jsonify({'locations': ranked, 'total': len(all_results)})
 
 # @app.route('/audio', methods=['POST'])
 # def receive_audio():
