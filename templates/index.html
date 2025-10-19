@@ -65,21 +65,112 @@
         }
     </style>
     <script>
+        let directionsService, directionsRenderer;
+        let userLocation = null; // optionally set if you capture geolocation elsewhere
+
+        function parseLatLng(loc) {
+            // Try common shapes for lat/lng in the returned JSON
+            if (!loc) return null;
+            if (typeof loc.lat === 'number' && typeof loc.lng === 'number') return { lat: loc.lat, lng: loc.lng };
+            if (loc.location && typeof loc.location.lat === 'number' && typeof loc.location.lng === 'number') return { lat: loc.location.lat, lng: loc.location.lng };
+            if (loc.geometry && loc.geometry.location) {
+                const g = loc.geometry.location;
+                if (typeof g.lat === 'number' && typeof g.lng === 'number') return { lat: g.lat, lng: g.lng };
+                if (typeof g.lat === 'function' && typeof g.lng === 'function') return { lat: g.lat(), lng: g.lng() };
+            }
+            if (Array.isArray(loc.coordinates) && loc.coordinates.length >= 2) {
+                // assume [lng, lat] or [lat, lng] - try to detect
+                const a = loc.coordinates;
+                // Heuristic: if lat between -90 and 90 and lng between -180 and 180
+                if (Math.abs(a[0]) <= 90 && Math.abs(a[1]) <= 180) return { lat: a[0], lng: a[1] };
+                return { lat: a[1], lng: a[0] };
+            }
+            return null;
+        }
+
         async function getLocs(event, radius){
             event.preventDefault();
 
             const response = await fetch('/getlocs?radius=' + radius);
             const data = await response.json();
-            const locsList = data['locations'];
+            const locsList = data['locations'] || data;
             const locationsUl = document.getElementById('locations');
             locationsUl.innerHTML = '';
-            locsList.forEach(loc => {
+
+            locsList.forEach((loc, idx) => {
                 const li = document.createElement('li');
-                li.textContent = `${loc.name} - ${loc.vicinity}`;
+                const displayName = loc.name || loc.address || loc.displayName || `Location ${idx+1}`;
+                const displayVicinity = loc.vicinity || loc.address || '';
+                li.textContent = `${displayName}${displayVicinity ? ' - ' + displayVicinity : ''}`;
+
+                // Parse lat/lng and attach as dataset attrs if available
+                const latlng = parseLatLng(loc);
+                if (latlng) {
+                    li.dataset.lat = latlng.lat;
+                    li.dataset.lng = latlng.lng;
+                    li.style.cursor = 'pointer';
+                    li.title = 'Click to show route on map';
+                    li.addEventListener('click', () => {
+                        // Use userLocation if available, otherwise map center
+                        const dest = { lat: parseFloat(li.dataset.lat), lng: parseFloat(li.dataset.lng) };
+                        showRouteToLatLng(dest);
+                        // pan map to destination and zoom
+                        if (window.map && typeof window.map.setCenter === 'function') {
+                            window.map.setCenter(dest);
+                            window.map.setZoom(15);
+                        }
+                    });
+                } else {
+                    // No coords available; disable pointer
+                    li.title = 'Location coordinates not available';
+                }
+
                 locationsUl.appendChild(li);
             });
             locationsUl.hidden = false;
         }
+
+        function initMap() {
+            var center = {lat: 30.2672, lng: -97.7431}; // Example: Austin, TX
+            window.map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: center
+            });
+            var marker = new google.maps.Marker({position: center, map: window.map});
+
+            // Initialize Directions service & renderer
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({ map: window.map });
+        }
+
+        function showRouteToLatLng(destination) {
+            if (!destination) {
+                console.warn('No destination provided for routing');
+                return;
+            }
+
+            // Determine origin: use userLocation if set, otherwise use current map center
+            const origin = userLocation || (window.map ? window.map.getCenter().toJSON() : null);
+            if (!origin) {
+                console.warn('No origin available to calculate route');
+                return;
+            }
+
+            const req = {
+                origin: origin,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(req, function(result, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                } else {
+                    console.error('Directions request failed due to ' + status);
+                }
+            });
+        }
+
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDuPbvHvD-jm49o21_0_N2nRpkhpEby0bM"></script>
 </head>

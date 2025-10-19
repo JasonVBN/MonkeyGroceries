@@ -3,6 +3,7 @@ let markers = [];
 let currentUserLocation;
 let directionsService;
 let directionsRenderer;
+let destinationMarker = null;
 
 async function initMap() {
   const { Map, InfoWindow } = await google.maps.importLibrary("maps");
@@ -13,6 +14,9 @@ async function initMap() {
     mapId: 'DEMO_MAP_ID',
     gestureHandling: 'greedy'
   });
+
+    // Expose map to window so inline templates can access it
+    try { window.map = map; } catch (e) { /* ignore in non-browser env */ }
 
   infoWindow = new InfoWindow();
 
@@ -31,7 +35,9 @@ async function initMap() {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        map.setCenter(currentUserLocation);
+                // expose to global window as well so other inline scripts can read it
+                try { window.currentUserLocation = currentUserLocation; } catch (e) { }
+                map.setCenter(currentUserLocation);
 
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
@@ -104,6 +110,31 @@ async function showRouteTo(destination) {
         if (status === 'OK') {
             directionsRenderer.setDirections(result);
             document.getElementById('status-message').textContent = 'Route displayed.';
+            // place a red marker at the destination (clear previous)
+            try {
+                if (destinationMarker) {
+                    destinationMarker.setMap(null);
+                    destinationMarker = null;
+                }
+                // destination may be a LatLngLiteral or google.maps.LatLng
+                const destPos = (destination && typeof destination.lat === 'function')
+                    ? { lat: destination.lat(), lng: destination.lng() }
+                    : { lat: destination.lat, lng: destination.lng };
+
+                destinationMarker = new google.maps.Marker({
+                    position: destPos,
+                    map: map,
+                    title: 'Destination',
+                    icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                });
+                // optional: show infoWindow when marker clicked
+                destinationMarker.addListener('click', () => {
+                    infoWindow.setContent('Destination');
+                    infoWindow.open(map, destinationMarker);
+                });
+            } catch (e) {
+                console.warn('Could not place destination marker', e);
+            }
         } else {
             console.error('Directions request failed due to ' + status);
             document.getElementById('status-message').textContent = 'Could not calculate route: ' + status;

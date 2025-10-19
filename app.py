@@ -62,7 +62,11 @@ def getlocs():
     print(f"[getlocs] radius: {r} km, query: {query}")
 
     API_KEY = os.getenv('GMAPS_API_KEY')
-    center_lat, center_lng = 30.2672, -97.7431
+    # Allow client to provide center_lat/center_lng (from browser geolocation). Fall back to default coordinates.
+    center_lat = data.get('center_lat', None)
+    center_lng = data.get('center_lng', None)
+    if center_lat is None or center_lng is None:    
+        center_lat, center_lng = 30.2672, -97.7431 #default
     
     all_results = []
     seen_place_ids = set()
@@ -112,8 +116,9 @@ def getlocs():
         store['rating'] = random_float(3, 5, 0.1)
         for st in all_results:
             if st['name'] == store['name']:
-                store['place_id'] = st['place_id']
-                store['address'] = st.get('vicinity', 'N/A')
+                # store['place_id'] = st['place_id']
+                # store['address'] = st.get('vicinity', 'N/A')
+                store.update(st)
                 break
     diks = assign_normalized_price_score(diks)
     diks = assign_normalized_time_score(diks)
