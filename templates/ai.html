@@ -9,13 +9,17 @@
             event.preventDefault();
             const status = document.getElementById('status-message');
             status.textContent = 'Searching & filtering locations within ' + radius + ' miles...';
+            const priceWt = document.getElementById('price-scroll').value;
+            const timeWt = document.getElementById('time-scroll').value;
+            const ratingWt = document.getElementById('rating-scroll').value;
 
             const response = await fetch('/getlocs', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ radius: radius, query: query }),
+                body: JSON.stringify({ radius: radius, query: query, 
+                    priceWt: priceWt, timeWt: timeWt, ratingWt: ratingWt}),
             });
             const data = await response.json();
             const locsList = data['locations'];
