@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        form {
+            background: #fff;
+            padding: 16px;
+            margin: 24px auto 12px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            max-width: 350px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        input[type="number"] {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 140px;
+        }
+        input[type="submit"] {
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 7px 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        input[type="submit"]:hover {
+            background: #1565c0;
+        }
+        ul#locations {
+            background: #fff;
+            max-width: 500px;
+            margin: 0 auto 24px auto;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            list-style: none;
+        }
+        ul#locations li {
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+        ul#locations li:last-child {
+            border-bottom: none;
+        }
+        #map {
+            max-width: 700px;
+            margin: 0 auto 32px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            background: #e3e3e3;
+        }
+    </style>
+    <script>
+        async function getLocs(event, radius){
+            event.preventDefault();
+
+            const response = await fetch('/getlocs?radius=' + radius);
+            const data = await response.json();
+            const locsList = data['locations'];
+            const locationsUl = document.getElementById('locations');
+            locationsUl.innerHTML = '';
+            locsList.forEach(loc => {
+                const li = document.createElement('li');
+                li.textContent = `${loc.name} - ${loc.vicinity}`;
+                locationsUl.appendChild(li);
+            });
+            locationsUl.hidden = false;
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDuPbvHvD-jm49o21_0_N2nRpkhpEby0bM"></script>
+</head>
+<body>
+    <form onsubmit="getLocs(event, document.getElementById('radius').value);">
+        <input type="number" id="radius" name="radius" step=0.5 max=5 placeholder="Enter radius in miles">
+        <input type="submit">
+    </form>
+
+    <ul id="locations" hidden>
+
+    </ul>
+
+    <div id="map" style="height:400px;width:100%;"></div>
+    <script>
+        function initMap() {
+        var center = {lat: 30.2672, lng: -97.7431}; // Example: Austin, TX
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 12,
+            center: center
+        });
+        var marker = new google.maps.Marker({position: center, map: map});
+        }
+        window.onload = initMap;
+    </script>
+</body>
+</html>

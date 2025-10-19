@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grocery Store Optimizer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        async function getLocs(event, radius, query){
+            event.preventDefault();
+
+            const response = await fetch('/getlocs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ radius: radius, query: query }),
+            });
+            const data = await response.json();
+            const locsList = data['locations'];
+            const locationsUl = document.getElementById('results-list');
+            locationsUl.innerHTML = '';
+            locsList.forEach(loc => {
+                const li = document.createElement('li');
+                li.textContent = `${loc.name} - ${loc.vicinity}`;
+                locationsUl.appendChild(li);
+            });
+            locationsUl.hidden = false;
+        }
+    </script>
+</head>
+<body>
+    <div id="container">
+        <div id="map"></div>
+        <div id="panel">
+            <h2>Grocery Store Finder</h2>
+            <form id="controls" onsubmit="getLocs(event, document.getElementById('radius-input').value, document.getElementById('query-input').value);">
+                <label for="radius-input">Enter radius in miles:</label>
+                <input type="number" id="radius-input" value="5" min="1">
+                <input type="text" id="query-input" placeholder="What you trying to buy?">
+                <button id="search-button">Find Stores</button>
+            </form>
+            <div id="results-panel">
+                <p id="status-message">Enter a radius and click 'Find Stores' to begin.</p>
+                <ul id="results-list"></ul>
+            </div>
+        </div>
+    </div>
+    <script>(g=>{
+        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});
+        var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{
+            await (a=m.createElement("script"));
+            e.set("libraries",[...r]+"");
+            for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t.toLowerCase()),g[k]);e.set("callback",c+".maps."+q);
+            a.src=`https://maps.${c}apis.com/maps/api/js?`+e;
+            d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));
+            a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));
+            d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+    key: "AIzaSyDuPbvHvD-jm49o21_0_N2nRpkhpEby0bM",
+    v: "weekly"
+    });
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
