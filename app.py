@@ -5,6 +5,7 @@ import time
 from dotenv import load_dotenv
 import os
 load_dotenv()
+from FilterAI import ask_gemini
 
 app = Flask(__name__)
 
@@ -89,9 +90,11 @@ def getlocs():
                 all_results.append(place)
     
     print(f"[getlocs] found {len(all_results)} unique places total")
-    filtered = [{'name': x['name'], 'vicinity': x['vicinity']} for x in all_results]
-    
-    return jsonify({'locations': filtered})
+    # filtered = [{'name': x['name'], 'vicinity': x['vicinity']} for x in all_results]
+    filtered = ask_gemini(query, [x['name'] for x in all_results])
+    print("AI-filtered results:", filtered)
+    ret = [{'name': key} for key in filtered['recommended_stores'].keys()]
+    return jsonify({'locations': ret, 'total': len(all_results)})
 
 # @app.route('/audio', methods=['POST'])
 # def receive_audio():

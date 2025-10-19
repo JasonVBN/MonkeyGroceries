@@ -21,7 +21,7 @@
             locationsUl.innerHTML = '';
             locsList.forEach(loc => {
                 const li = document.createElement('li');
-                li.textContent = `${loc.name} - ${loc.vicinity}`;
+                li.textContent = `${loc.name}`;
                 locationsUl.appendChild(li);
             });
             locationsUl.hidden = false;
